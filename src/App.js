@@ -1,24 +1,45 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useReducer } from "react";
+
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.css";
+import { LogIn } from "./components/LogIn";
+import { Home } from "./routers/Home";
+import { AuthContext } from "./auth/AuthContext";
+import { authReducer } from "./auth/authReducer";
+
+import { PublicRoute } from "./routers/PublicRoute";
+
+const init = () => {
+  return (
+    JSON.parse(localStorage.getItem("user")) || {
+      logged: false,
+    }
+  );
+};
 
 function App() {
+  const [state, dispatch] = useReducer(authReducer, {}, init);
+
+  useEffect(() => {
+    localStorage.setItem("user", JSON.stringify(state));
+  }, [state]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div>
+        <AuthContext.Provider value={{ state, dispatch }}>
+          <Switch>
+            <PublicRoute
+              exact
+              path="/login"
+              component={LogIn}
+              isAuthenticated={state.logged}
+            />
+            <Route path="/" component={Home} />
+          </Switch>
+        </AuthContext.Provider>
+      </div>
+    </Router>
   );
 }
 
